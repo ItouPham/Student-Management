@@ -1,5 +1,8 @@
 package com.api.student_management.model.request;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -7,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class AddUserRequest {
+public class UpdateUserRequest {
 	
 	private String username;
 
@@ -19,5 +22,5 @@ public class AddUserRequest {
 
 	private String email;
 	
-	private Integer roleId;
+	private Set<Integer> roleIds = new HashSet<>();
 }
