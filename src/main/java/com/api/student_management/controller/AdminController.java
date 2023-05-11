@@ -5,7 +5,6 @@ import javax.annotation.security.RolesAllowed;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,7 +12,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.api.student_management.model.request.UpdateUserRequest;
@@ -24,13 +22,13 @@ import com.api.student_management.service.UserService;
 import com.api.student_management.utils.Logs;
 
 @RestController
-@CrossOrigin
 @RequestMapping("admin")
 public class AdminController {
 	@Autowired
 	private UserService userService;
 
 	@GetMapping("user")
+	@RolesAllowed("ADMIN")
 	public ResponseEntity<?> getAllUser() {
 		ListUserReturn listUserReturn = new ListUserReturn();
 		try {
@@ -59,6 +57,20 @@ public class AdminController {
 			e.printStackTrace();
 			listUserReturn.setNotification(new NotificationResponse(Logs.ERROR_SYSTEM.getMessage()));
 			return ResponseEntity.ok(listUserReturn);
+		}
+	}
+	
+	@GetMapping("user/{id}")
+	@RolesAllowed("ADMIN")
+	public ResponseEntity<?> getUserById(@PathVariable Long id){
+		UserReturn userReturn = new UserReturn();
+		try {
+			userReturn = userService.getUserById(id);
+			return ResponseEntity.ok(userReturn);
+		} catch (Exception e) {
+			e.printStackTrace();
+			userReturn.setNotification(new NotificationResponse(Logs.ERROR_SYSTEM.getMessage()));
+			return ResponseEntity.ok(userReturn);
 		}
 	}
 

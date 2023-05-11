@@ -38,7 +38,7 @@ public class UserServiceImpl implements UserService {
 
 	@Autowired
 	private BCryptPasswordEncoder bCryptPasswordEncoder;
-	
+
 	@Override
 	public ListUserReturn getAllUser() {
 		ListUserReturn listUserReturn = new ListUserReturn();
@@ -81,6 +81,29 @@ public class UserServiceImpl implements UserService {
 			return listUserReturn;
 		}
 
+	}
+
+	@Override
+	public UserReturn getUserById(Long id) {
+		UserReturn userReturn = new UserReturn();
+		User user = new User();
+		ObjUser objUser = new ObjUser();
+		try {
+			user = userRepository.findById(id).orElse(null);
+			if(user != null) {
+				BeanUtils.copyProperties(user, objUser);
+				userReturn.setObjUser(objUser);
+				userReturn.setNotification(new NotificationResponse(Logs.GET_DATA_SUCCESS.getMessage()));
+			} else {
+				userReturn.setNotification(new NotificationResponse(Logs.USER_NOT_EXISTS.getMessage()));
+			}
+			return userReturn;
+		} catch (Exception e) {
+			e.printStackTrace();
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+			userReturn.setNotification(new NotificationResponse(Logs.ERROR_SYSTEM.getMessage()));
+			return userReturn;
+		}
 	}
 
 	@Override
@@ -133,15 +156,15 @@ public class UserServiceImpl implements UserService {
 		Set<Role> roles = new HashSet<>();
 		try {
 			user = userRepository.findById(id).orElse(null);
-			if(user != null) {
-				if(!user.getEmail().equals(request.getEmail())) {
+			if (user != null) {
+				if (!user.getEmail().equals(request.getEmail())) {
 					boolean isExistedEmail = userRepository.existsByEmail(request.getEmail());
 					if (isExistedEmail) {
 						userReturn.setNotification(new NotificationResponse(Logs.EXISTED_EMAIL.getMessage()));
 						return userReturn;
 					}
 				}
-				if(StringUtils.isNotEmpty(request.getPassword())) {				
+				if (StringUtils.isNotEmpty(request.getPassword())) {
 					user.setPassword(bCryptPasswordEncoder.encode(request.getPassword()));
 				}
 				user.setEmail(request.getEmail());
@@ -161,7 +184,7 @@ public class UserServiceImpl implements UserService {
 			} else {
 				userReturn.setNotification(new NotificationResponse(Logs.USER_NOT_EXISTS.getMessage()));
 			}
-			
+
 			return userReturn;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -179,7 +202,7 @@ public class UserServiceImpl implements UserService {
 		ObjUser objUser = new ObjUser();
 		try {
 			user = userRepository.findById(id).orElse(null);
-			if(user != null) {
+			if (user != null) {
 				BeanUtils.copyProperties(user, objUser);
 				userRepository.delete(user);
 				userReturn.setObjUser(objUser);
@@ -195,7 +218,5 @@ public class UserServiceImpl implements UserService {
 			return userReturn;
 		}
 	}
-
-	
 
 }
