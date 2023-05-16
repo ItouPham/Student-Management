@@ -203,7 +203,8 @@ public class UserServiceImpl implements UserService {
 		try {
 			user = userRepository.findById(id).orElse(null);
 			if (user != null) {
-				BeanUtils.copyProperties(user, objUser);
+//				BeanUtils.copyProperties(user, objUser);
+//				ObjUser objUser = (ObjUser) user.clone();
 				userRepository.delete(user);
 				userReturn.setObjUser(objUser);
 				userReturn.setNotification(new NotificationResponse(Logs.DELETE_USER_SUCCESS.getMessage()));
