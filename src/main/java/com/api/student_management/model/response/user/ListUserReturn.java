@@ -1,6 +1,8 @@
-package com.api.student_management.model.response;
+package com.api.student_management.model.response.user;
 
 import java.util.List;
+
+import com.api.student_management.model.response.NotificationResponse;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

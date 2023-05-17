@@ -14,7 +14,9 @@ public enum Logs {
 	CREATE_USER_SUCCESS("Create user successfully"), 
 	USER_NOT_EXISTS("User not exists"), 
 	UPDATE_USER_SUCCESS("Update user successfully"), 
-	DELETE_USER_SUCCESS("Delete user successfully");
+	DELETE_USER_SUCCESS("Delete user successfully"),
+	CREATE_CLASS_SUCCESS("Create class successfully")
+	,SUBJECT_NOT_EXISTS("Subject not exists") ;
 
 	private String message;
 }

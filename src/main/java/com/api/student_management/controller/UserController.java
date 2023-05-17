@@ -12,28 +12,28 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.api.student_management.model.request.UpdateUserRequest;
-import com.api.student_management.model.response.ListUserReturn;
 import com.api.student_management.model.response.NotificationResponse;
-import com.api.student_management.model.response.UserReturn;
+import com.api.student_management.model.response.user.ListUserReturn;
+import com.api.student_management.model.response.user.UserReturn;
 import com.api.student_management.service.UserService;
 import com.api.student_management.utils.Logs;
 
 @RestController
-@RequestMapping("admin")
-public class AdminController {
+@RequestMapping("admin/user")
+public class UserController {
 	@Autowired
 	private UserService userService;
 
-	@GetMapping("user")
+	@GetMapping()
 	@RolesAllowed("ADMIN")
 	public ResponseEntity<?> getAllUser() {
 		ListUserReturn listUserReturn = new ListUserReturn();
 		try {
 			listUserReturn = userService.getAllUser();
-
 			return ResponseEntity.ok(listUserReturn);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -42,7 +42,7 @@ public class AdminController {
 		}
 	}
 
-	@GetMapping("getUserByCode")
+	@GetMapping("getByCode")
 	@RolesAllowed("ADMIN")
 	public ResponseEntity<?> getUsersByCode(String code) {
 		ListUserReturn listUserReturn = new ListUserReturn();
@@ -60,7 +60,7 @@ public class AdminController {
 		}
 	}
 	
-	@GetMapping("user/{id}")
+	@GetMapping("/{id}")
 	@RolesAllowed("ADMIN")
 	public ResponseEntity<?> getUserById(@PathVariable Long id){
 		UserReturn userReturn = new UserReturn();
@@ -74,7 +74,7 @@ public class AdminController {
 		}
 	}
 
-	@PostMapping("user")
+	@PostMapping()
 	@RolesAllowed("ADMIN")
 	public ResponseEntity<?> createNewUser(@RequestBody UpdateUserRequest request) {
 		UserReturn userReturn = new UserReturn();
@@ -88,7 +88,7 @@ public class AdminController {
 		}
 	}
 
-	@PutMapping("user/{id}")
+	@PutMapping("/{id}")
 	@RolesAllowed("ADMIN")
 	public ResponseEntity<?> editUser(@PathVariable Long id, @RequestBody UpdateUserRequest request) {
 		UserReturn userReturn = new UserReturn();
@@ -102,7 +102,7 @@ public class AdminController {
 		}
 	}
 
-	@DeleteMapping("user/{id}")
+	@DeleteMapping("/{id}")
 	@RolesAllowed("ADMIN")
 	public ResponseEntity<?> deleteUser(@PathVariable Long id) {
 		UserReturn userReturn = new UserReturn();
