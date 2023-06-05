@@ -18,6 +18,7 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import com.api.student_management.constant.RoleEnum;
 import com.api.student_management.entity.Role;
 import com.api.student_management.entity.User;
+import com.api.student_management.model.request.CreateUserRequest;
 import com.api.student_management.model.request.UpdateUserRequest;
 import com.api.student_management.model.response.NotificationResponse;
 import com.api.student_management.model.response.user.ListUserReturn;
@@ -38,6 +39,16 @@ public class UserServiceImpl implements UserService {
 
 	@Autowired
 	private BCryptPasswordEncoder bCryptPasswordEncoder;
+	
+	private boolean deleteUser(User user) {
+		try {
+			userRepository.delete(user);
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
 
 	@Override
 	public ListUserReturn getAllUser() {
@@ -45,13 +56,17 @@ public class UserServiceImpl implements UserService {
 		List<ObjUser> listObjUser = new ArrayList<>();
 		try {
 			List<User> users = userRepository.findAll();
-			for (User user : users) {
-				ObjUser objUser = new ObjUser();
-				BeanUtils.copyProperties(user, objUser);
-				listObjUser.add(objUser);
+			if (users != null && users.size() > 0) {
+				for (User user : users) {
+					ObjUser objUser = new ObjUser();
+					BeanUtils.copyProperties(user, objUser);
+					listObjUser.add(objUser);
+				}
+				listUserReturn.setNotification(new NotificationResponse(Logs.GET_DATA_SUCCESS.getMessage()));
+			} else {
+				listUserReturn.setNotification(new NotificationResponse(Logs.GET_DATA_UNSUCCESS.getMessage()));
 			}
 			listUserReturn.setListUser(listObjUser);
-			listUserReturn.setNotification(new NotificationResponse(Logs.GET_DATA_SUCCESS.getMessage()));
 			return listUserReturn;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -65,15 +80,23 @@ public class UserServiceImpl implements UserService {
 		ListUserReturn listUserReturn = new ListUserReturn();
 		List<ObjUser> listObjUser = new ArrayList<>();
 		try {
-			Optional<Role> role = roleRepository.findByName(code);
-			List<User> users = userRepository.findByRoles(role);
-			for (User user : users) {
-				ObjUser objUser = new ObjUser();
-				BeanUtils.copyProperties(user, objUser);
-				listObjUser.add(objUser);
+			Optional<Role> role = roleRepository.findByName(code.toUpperCase());
+			if (role.isPresent()) {
+				List<User> users = userRepository.findByRoles(role);
+				if (users != null && users.size() > 0) {
+					for (User user : users) {
+						ObjUser objUser = new ObjUser();
+						BeanUtils.copyProperties(user, objUser);
+						listObjUser.add(objUser);
+					}
+					listUserReturn.setNotification(new NotificationResponse(Logs.GET_DATA_SUCCESS.getMessage()));
+				}else {
+					listUserReturn.setNotification(new NotificationResponse(Logs.GET_DATA_UNSUCCESS.getMessage()));
+				}
+			} else {
+				listUserReturn.setNotification(new NotificationResponse(Logs.ROLE_NOT_EXISTS.getMessage()));
 			}
 			listUserReturn.setListUser(listObjUser);
-			listUserReturn.setNotification(new NotificationResponse(Logs.GET_DATA_SUCCESS.getMessage()));
 			return listUserReturn;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -90,7 +113,7 @@ public class UserServiceImpl implements UserService {
 		ObjUser objUser = new ObjUser();
 		try {
 			user = userRepository.findById(id).orElse(null);
-			if(user != null) {
+			if (user != null) {
 				BeanUtils.copyProperties(user, objUser);
 				userReturn.setObjUser(objUser);
 				userReturn.setNotification(new NotificationResponse(Logs.GET_DATA_SUCCESS.getMessage()));
@@ -100,7 +123,6 @@ public class UserServiceImpl implements UserService {
 			return userReturn;
 		} catch (Exception e) {
 			e.printStackTrace();
-			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
 			userReturn.setNotification(new NotificationResponse(Logs.ERROR_SYSTEM.getMessage()));
 			return userReturn;
 		}
@@ -108,7 +130,7 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	@Transactional
-	public UserReturn createNewUser(UpdateUserRequest request) {
+	public UserReturn createNewUser(CreateUserRequest request) {
 		UserReturn userReturn = new UserReturn();
 		User user = new User();
 		ObjUser objUser = new ObjUser();
@@ -131,13 +153,21 @@ public class UserServiceImpl implements UserService {
 				Role role = roleRepository.findById(roleId).orElse(null);
 				if (role != null) {
 					roles.add(role);
+				} else{
+					String message = Logs.ROLE_ID_NOT_EXISTS.getMessage().replace("%ID%", roleId.toString());
+					userReturn.setNotification(new NotificationResponse(message));
+					return userReturn;
 				}
 			}
 			user.setRoles(roles);
-			userRepository.save(user);
-			BeanUtils.copyProperties(user, objUser);
-			userReturn.setObjUser(objUser);
-			userReturn.setNotification(new NotificationResponse(Logs.CREATE_USER_SUCCESS.getMessage()));
+			user = userRepository.save(user);
+			if (user != null) {
+				BeanUtils.copyProperties(user, objUser);
+				userReturn.setObjUser(objUser);
+				userReturn.setNotification(new NotificationResponse(Logs.CREATE_USER_SUCCESS.getMessage()));
+			} else {
+				userReturn.setNotification(new NotificationResponse(Logs.CREATE_USER_UNSUCCESS.getMessage()));
+			}
 			return userReturn;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -177,14 +207,17 @@ public class UserServiceImpl implements UserService {
 					}
 				}
 				user.setRoles(roles);
-				userRepository.save(user);
-				BeanUtils.copyProperties(user, objUser);
-				userReturn.setObjUser(objUser);
-				userReturn.setNotification(new NotificationResponse(Logs.UPDATE_USER_SUCCESS.getMessage()));
+				user = userRepository.save(user);
+				if (user != null) {
+					BeanUtils.copyProperties(user, objUser);
+					userReturn.setObjUser(objUser);
+					userReturn.setNotification(new NotificationResponse(Logs.UPDATE_USER_SUCCESS.getMessage()));
+				} else {
+					userReturn.setNotification(new NotificationResponse(Logs.UPDATE_USER_UNSUCCESS.getMessage()));
+				}
 			} else {
 				userReturn.setNotification(new NotificationResponse(Logs.USER_NOT_EXISTS.getMessage()));
 			}
-
 			return userReturn;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -199,15 +232,16 @@ public class UserServiceImpl implements UserService {
 	public UserReturn deleteUser(Long id) {
 		UserReturn userReturn = new UserReturn();
 		User user = new User();
-		ObjUser objUser = new ObjUser();
 		try {
 			user = userRepository.findById(id).orElse(null);
 			if (user != null) {
-//				BeanUtils.copyProperties(user, objUser);
-//				ObjUser objUser = (ObjUser) user.clone();
-				userRepository.delete(user);
-				userReturn.setObjUser(objUser);
-				userReturn.setNotification(new NotificationResponse(Logs.DELETE_USER_SUCCESS.getMessage()));
+				boolean isDelete =  deleteUser(user);
+				if(isDelete) {
+					userReturn.setObjUser(null);
+					userReturn.setNotification(new NotificationResponse(Logs.DELETE_USER_SUCCESS.getMessage()));
+				} else {
+					userReturn.setNotification(new NotificationResponse(Logs.DELETE_USER_UNSUCCESS.getMessage()));
+				}
 			} else {
 				userReturn.setNotification(new NotificationResponse(Logs.USER_NOT_EXISTS.getMessage()));
 			}

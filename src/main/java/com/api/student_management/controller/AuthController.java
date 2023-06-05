@@ -10,17 +10,23 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.api.student_management.jwt.JwtTokenUtil;
 import com.api.student_management.model.request.AuthRequest;
-import com.api.student_management.model.response.AuthResponse;
+import com.api.student_management.model.response.NotificationResponse;
+import com.api.student_management.model.response.auth.AuthResponse;
+import com.api.student_management.model.response.auth.AuthReturn;
 import com.api.student_management.security.CustomUserDetails;
+import com.api.student_management.utils.Logs;
 
 import io.jsonwebtoken.ExpiredJwtException;
 
@@ -32,21 +38,38 @@ public class AuthController {
 
 	@Autowired
 	private JwtTokenUtil jwtUtil;
+	
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public NotificationResponse handleValidationExceptions(MethodArgumentNotValidException ex) {
+		NotificationResponse notificationResponse = new NotificationResponse();
+		notificationResponse.setMessage(ex.getBindingResult().getFieldError().getDefaultMessage());
+        return notificationResponse;
+    }
 
 	@PostMapping("login")
 	public ResponseEntity<?> login(@RequestBody @Valid AuthRequest request) {
+		AuthReturn authReturn = new AuthReturn();
+		Authentication authentication = null;
 		try {
-			Authentication authentication = authManager
-					.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
+			try {
+				authentication = authManager.authenticate(
+						new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
+			} catch (BadCredentialsException ex) {
+				authReturn.setNotification(new NotificationResponse(Logs.INVALID_USERNAME_PASSWORD.getMessage()));
+				return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(authReturn);
+			}
 
 			CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
 			String accessToken = jwtUtil.generateAccessToken(user.getUsername());
-			AuthResponse response = new AuthResponse(user.getUsername(), accessToken);
+			authReturn.setAuthResponse(new AuthResponse(user.getUsername(), accessToken));
+			authReturn.setNotification(new NotificationResponse(Logs.LOGIN_SUCCESS.getMessage()));
+			return ResponseEntity.ok().body(authReturn);
 
-			return ResponseEntity.ok().body(response);
-
-		} catch (BadCredentialsException ex) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		} catch (Exception e) {
+			e.printStackTrace();
+			authReturn.setNotification(new NotificationResponse(Logs.ERROR_SYSTEM.getMessage()));
+			return ResponseEntity.ok(authReturn);
 		}
 	}
 	@GetMapping("validate")

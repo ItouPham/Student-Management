@@ -66,12 +66,16 @@ public class ClassServiceImpl implements ClassService {
 			classes.setStartDate(DateTimeUtil.format(request.getStartDate()));
 			classes.setMembers(listMembers);
 			classes.setSubjects(listSubjects);
-			classRepository.save(classes);
-			BeanUtils.copyProperties(classes, objClass);
-			objClass.setCreatedDates(DateTimeUtil.formatRespones(objClass.getCreatedDate()));
-			objClass.setStartDates(DateTimeUtil.formatRespones(objClass.getStartDate()));
-			classReturn.setObjClass(objClass);
-			classReturn.setNotification(new NotificationResponse(Logs.CREATE_CLASS_SUCCESS.getMessage()));
+			classes = classRepository.save(classes);
+			if (classes != null) {
+				BeanUtils.copyProperties(classes, objClass);
+				objClass.setStartDates(DateTimeUtil.formatRespones(objClass.getStartDate()));
+				objClass.setCreatedDates(DateTimeUtil.formatRespones(objClass.getCreatedDate()));
+				classReturn.setObjClass(objClass);
+				classReturn.setNotification(new NotificationResponse(Logs.CREATE_CLASS_SUCCESS.getMessage()));
+			} else {
+				classReturn.setNotification(new NotificationResponse(Logs.CREATE_CLASS_UNSUCCESS.getMessage()));
+			}
 			return classReturn;
 		} catch (Exception e) {
 			e.printStackTrace();

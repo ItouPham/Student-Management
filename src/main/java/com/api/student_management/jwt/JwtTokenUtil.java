@@ -85,9 +85,6 @@ public class JwtTokenUtil {
 
 	public Boolean validateToken(String token, UserDetails userDetails) {
         final String username = getSubject(token);
-//        return  isAliveToken(token);
-        System.out.println(userDetails);
-        System.out.println(userDetails.getUsername());
         return (userDetails != null && username.equals(userDetails.getUsername()) && isAliveToken(token));
     }
 	
