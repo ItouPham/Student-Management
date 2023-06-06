@@ -14,13 +14,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AuthRequest {
-	@NotNull(message = "The username is required")
-	@Length(min = 5, max = 50)
+//	@NotNull(message = "The username is required")
 	@NotBlank(message = "The username cannot be empty")
+//	@Length(min = 5, max = 50)
 	private String username;
 
-	@NotNull(message = "The password is required")
+//	@NotNull(message = "The password is required")
 	@NotBlank(message = "The password cannot be empty")
-	@Length(min = 5, max = 10)
+//	@Length(min = 5, max = 10)
 	private String password;
 }

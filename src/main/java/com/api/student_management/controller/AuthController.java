@@ -38,42 +38,23 @@ public class AuthController {
 
 	@Autowired
 	private JwtTokenUtil jwtUtil;
-	
-	@ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public NotificationResponse handleValidationExceptions(MethodArgumentNotValidException ex) {
-		NotificationResponse notificationResponse = new NotificationResponse();
-		notificationResponse.setMessage(ex.getBindingResult().getFieldError().getDefaultMessage());
-        return notificationResponse;
-    }
 
 	@PostMapping("login")
 	public ResponseEntity<?> login(@RequestBody @Valid AuthRequest request) {
 		AuthReturn authReturn = new AuthReturn();
 		Authentication authentication = null;
-		try {
-			try {
-				authentication = authManager.authenticate(
-						new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
-			} catch (BadCredentialsException ex) {
-				authReturn.setNotification(new NotificationResponse(Logs.INVALID_USERNAME_PASSWORD.getMessage()));
-				return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(authReturn);
-			}
-
-			CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
-			String accessToken = jwtUtil.generateAccessToken(user.getUsername());
-			authReturn.setAuthResponse(new AuthResponse(user.getUsername(), accessToken));
-			authReturn.setNotification(new NotificationResponse(Logs.LOGIN_SUCCESS.getMessage()));
-			return ResponseEntity.ok().body(authReturn);
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			authReturn.setNotification(new NotificationResponse(Logs.ERROR_SYSTEM.getMessage()));
-			return ResponseEntity.ok(authReturn);
-		}
+		authentication = authManager
+				.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
+		CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
+		String accessToken = jwtUtil.generateAccessToken(user.getUsername());
+		authReturn.setAuthResponse(new AuthResponse(user.getUsername(), accessToken));
+		authReturn.setNotification(new NotificationResponse(Logs.LOGIN_SUCCESS.getMessage()));
+		return ResponseEntity.ok().body(authReturn);
 	}
+
 	@GetMapping("validate")
-	public ResponseEntity<?> validateToken(@RequestParam String token, @AuthenticationPrincipal CustomUserDetails user){
+	public ResponseEntity<?> validateToken(@RequestParam String token,
+			@AuthenticationPrincipal CustomUserDetails user) {
 		try {
 			Boolean isValidToken = jwtUtil.validateToken(token, user);
 			return ResponseEntity.ok(isValidToken);

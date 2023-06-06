@@ -32,27 +32,14 @@ import com.api.student_management.utils.Logs;
 public class UserController {
 	@Autowired
 	private UserService userService;
-	
-	@ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public NotificationResponse handleValidationExceptions(MethodArgumentNotValidException ex) {
-		NotificationResponse notificationResponse = new NotificationResponse();
-		notificationResponse.setMessage(ex.getBindingResult().getFieldError().getDefaultMessage());
-        return notificationResponse;
-    }
 
 	@GetMapping()
 	@RolesAllowed("ADMIN")
 	public ResponseEntity<?> getAllUser() {
 		ListUserReturn listUserReturn = new ListUserReturn();
-		try {
-			listUserReturn = userService.getAllUser();
-			return ResponseEntity.ok(listUserReturn);
-		} catch (Exception e) {
-			e.printStackTrace();
-			listUserReturn.setNotification(new NotificationResponse(Logs.ERROR_SYSTEM.getMessage()));
-			return ResponseEntity.ok(listUserReturn);
-		}
+		listUserReturn = userService.getAllUser();
+		return ResponseEntity.ok(listUserReturn);
+
 	}
 
 	@GetMapping("getByCode")
@@ -72,10 +59,10 @@ public class UserController {
 			return ResponseEntity.ok(listUserReturn);
 		}
 	}
-	
+
 	@GetMapping("/{id}")
 	@RolesAllowed("ADMIN")
-	public ResponseEntity<?> getUserById(@PathVariable Long id){
+	public ResponseEntity<?> getUserById(@PathVariable Long id) {
 		UserReturn userReturn = new UserReturn();
 		try {
 			userReturn = userService.getUserById(id);

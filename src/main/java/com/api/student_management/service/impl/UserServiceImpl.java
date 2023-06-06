@@ -39,16 +39,6 @@ public class UserServiceImpl implements UserService {
 
 	@Autowired
 	private BCryptPasswordEncoder bCryptPasswordEncoder;
-	
-	private boolean deleteUser(User user) {
-		try {
-			userRepository.delete(user);
-			return true;
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return false;
-	}
 
 	@Override
 	public ListUserReturn getAllUser() {
@@ -90,7 +80,7 @@ public class UserServiceImpl implements UserService {
 						listObjUser.add(objUser);
 					}
 					listUserReturn.setNotification(new NotificationResponse(Logs.GET_DATA_SUCCESS.getMessage()));
-				}else {
+				} else {
 					listUserReturn.setNotification(new NotificationResponse(Logs.GET_DATA_UNSUCCESS.getMessage()));
 				}
 			} else {
@@ -153,7 +143,7 @@ public class UserServiceImpl implements UserService {
 				Role role = roleRepository.findById(roleId).orElse(null);
 				if (role != null) {
 					roles.add(role);
-				} else{
+				} else {
 					String message = Logs.ROLE_ID_NOT_EXISTS.getMessage().replace("%ID%", roleId.toString());
 					userReturn.setNotification(new NotificationResponse(message));
 					return userReturn;
@@ -235,13 +225,9 @@ public class UserServiceImpl implements UserService {
 		try {
 			user = userRepository.findById(id).orElse(null);
 			if (user != null) {
-				boolean isDelete =  deleteUser(user);
-				if(isDelete) {
-					userReturn.setObjUser(null);
-					userReturn.setNotification(new NotificationResponse(Logs.DELETE_USER_SUCCESS.getMessage()));
-				} else {
-					userReturn.setNotification(new NotificationResponse(Logs.DELETE_USER_UNSUCCESS.getMessage()));
-				}
+				userRepository.delete(user);
+				userReturn.setObjUser(null);
+				userReturn.setNotification(new NotificationResponse(Logs.DELETE_USER_SUCCESS.getMessage()));
 			} else {
 				userReturn.setNotification(new NotificationResponse(Logs.USER_NOT_EXISTS.getMessage()));
 			}
